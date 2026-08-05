@@ -4,6 +4,13 @@ allowBuilds:
   sharp: true
   unrs-resolver: true
   vue-demi: true
+minimumReleaseAgeExclude:
+  - '@laioutr-core/canonical-types@0.27.1'
+  - '@laioutr-core/core-types@0.40.0'
+  - '@laioutr-core/devtools@0.40.0'
+  - '@laioutr-core/frontend-core@0.40.0'
+  - '@laioutr-core/kit@0.40.0'
+  - '@laioutr-core/orchestr@0.40.0'
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - esbuild
