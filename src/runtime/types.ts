@@ -10,6 +10,8 @@ export interface OneTrustSdk {
   /** Opens the preference centre. */
   ToggleInfoDisplay: () => void;
   OnConsentChanged: (callback: () => void) => void;
+  /** Whether the visitor has dismissed the banner, i.e. whether they answered at all. */
+  IsAlertBoxClosed: () => boolean;
 }
 
 declare global {
