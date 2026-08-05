@@ -38,10 +38,9 @@
   ],
   "dependencies": {
     "@nuxt/kit": "3.16.2",
-    "zod": "3.25.61"
+    "defu": "6.1.4"
   },
   "devDependencies": {
-    "@laioutr-app/ui": "^2.8.2",
     "@laioutr-core/devtools": "^0.37.1",
     "@laioutr/eslint-config": "^1.8.8",
     "@laioutr/prettier-config": "^1.1.0",
@@ -55,9 +54,11 @@
     "@vueuse/core": "13.1.0",
     "changelogen": "^0.6.2",
     "eslint": "^9.35.0",
+    "happy-dom": "13.10.1",
     "nuxt": "3.16.2",
     "pinia": "3.0.2",
     "typescript": "5.9.2",
+    "unbuild": "3.6.1",
     "vitest": "3.1.1",
     "vue-tsc": "2.2.10"
   },
