@@ -54,7 +54,6 @@
     "@vueuse/core": "13.1.0",
     "changelogen": "^0.6.2",
     "eslint": "^9.35.0",
-    "happy-dom": "13.10.1",
     "nuxt": "3.16.2",
     "pinia": "3.0.2",
     "typescript": "5.9.2",
