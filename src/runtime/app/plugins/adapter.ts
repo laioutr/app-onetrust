@@ -2,11 +2,13 @@ import { useCookie } from 'nuxt/app';
 import type { ConsentAdapter, ConsentManagementState } from '#frontend/consent';
 import type { RuntimeConfigModulePublic } from '../../../module';
 import type { Ref } from 'vue';
+import { hasConsentDecision } from '../hasConsentDecision';
 import { mapGroupsToCategories } from '../mapGroupsToCategories';
 import { parseActiveGroups } from '../parseActiveGroups';
 import { parseOptanonConsent } from '../parseOptanonConsent';
 
 const OPTANON_COOKIE = 'OptanonConsent';
+const ALERT_BOX_CLOSED_COOKIE = 'OptanonAlertBoxClosed';
 
 const DENIED: ConsentManagementState = {
   necessary: true,
@@ -22,6 +24,7 @@ class OneTrustAdapter implements ConsentAdapter {
   private _config: RuntimeConfigModulePublic;
   private _consentChangeCallbacks: Array<(consent: Partial<ConsentManagementState>) => void> = [];
   private _cookie: Ref<string[] | null> | undefined;
+  private _alertBoxClosed: Ref<string | null> | undefined;
   private _bridgeListener: ((groups: string) => void) | undefined;
 
   constructor(config: RuntimeConfigModulePublic) {
@@ -39,6 +42,10 @@ class OneTrustAdapter implements ConsentAdapter {
     this._cookie = useCookie<string[] | null>(OPTANON_COOKIE, {
       decode: (value: string) => parseOptanonConsent(value),
     });
+
+    // Written only when the visitor dismisses the banner, which is what separates a refusal from
+    // silence. The default decode is right here: only the presence of a datestamp is read.
+    this._alertBoxClosed = useCookie<string | null>(ALERT_BOX_CLOSED_COOKIE);
 
     if (import.meta.client) {
       const bridge = window.__laioutrOneTrust;
@@ -94,6 +101,10 @@ class OneTrustAdapter implements ConsentAdapter {
 
   hasCategoryConsent(category: keyof ConsentManagementState): boolean {
     return this.getConsentState()[category] ?? false;
+  }
+
+  hasDecision(): boolean {
+    return hasConsentDecision(import.meta.client ? window.OneTrust : undefined, this._alertBoxClosed?.value);
   }
 
   onConsentChange(callback: (consent: Partial<ConsentManagementState>) => void): void {
