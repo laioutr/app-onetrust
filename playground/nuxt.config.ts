@@ -24,10 +24,17 @@ export default defineNuxtConfig({
   // would require restating all four.
   //
   // The string form applies to every market. Which per-market ID set sportspar ships is still open,
-  // so the playground deliberately does not encode a guess; this is their staging domain script,
-  // registered to sportspar-gmbh.myshopify.com.
+  // so the playground deliberately does not encode a guess.
+  //
+  // The `-test` suffix matters and is not a typo. The production script is bound to the domain it
+  // is registered for — `sportspar-gmbh.myshopify.com` — and OneTrust scopes its consent cookies
+  // to that domain. On localhost the browser rejects those writes, so `OptanonAlertBoxClosed`
+  // never lands, `IsAlertBoxClosed()` stays false, and the banner never dismisses no matter what
+  // the visitor clicks: every decision reads as "has not answered". OneTrust's TEST variant of the
+  // same script carries the same rulesets without the domain binding, which is what makes consent
+  // decisions actually testable locally. Ship the ID without the suffix.
   '@laioutr/app-onetrust': {
-    scriptId: '019aa652-28d4-7cb8-928e-29e4a2e8f099',
+    scriptId: '019aa652-28d4-7cb8-928e-29e4a2e8f099-test',
   },
   devtools: { enabled: true },
   compatibilityDate: '2025-09-11',

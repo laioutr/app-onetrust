@@ -59,6 +59,24 @@ A market serving more than one host needs one OneTrust script per host, which
 this option cannot express — configure the market's additional hosts as their own
 markets, or raise it if you hit the case.
 
+### Local development
+
+A production script ID is bound to the domain it is registered for, and OneTrust scopes its
+consent cookies to that domain. On `localhost` the browser rejects those writes, so
+`OptanonAlertBoxClosed` never lands: `hasDecision()` stays `false` and the banner never dismisses,
+whatever the visitor clicks. Every answer reads as "has not answered".
+
+Append `-test` to the script ID for local work. OneTrust serves a TEST variant of the same script,
+carrying the same geolocation rules and group configuration without the domain binding:
+
+```ts
+scriptId: '019aa652-28d4-7cb8-928e-29e4a2e8f099-test',
+```
+
+Ship the ID without the suffix. Confirm which variant is loaded by reading
+`data-domain-script` in the rendered HTML, or `ScriptType` in
+`https://cdn.cookielaw.org/consent/<id>/<id>.json`.
+
 ### Group mapping
 
 | OneTrust group | Consent purpose |
