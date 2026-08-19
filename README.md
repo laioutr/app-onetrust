@@ -43,7 +43,7 @@ export default defineNuxtConfig({
 | `scriptId` | — | OneTrust script ID. String or `RcMarket.id` → ID record. Required. |
 | `cdnHost` | `cdn.cookielaw.org` | OneTrust CDN host, without scheme. Check `CDNLocation` in your domain JSON. |
 | `documentLanguage` | `true` | Emit `data-document-language="true"` so the banner follows `<html lang>`. |
-| `groupMapping` | see below | OneTrust group ID → canonical category, merged over the defaults. |
+| `groupMapping` | see below | OneTrust group ID → consent purpose, merged over the defaults. |
 
 OneTrust issues one script per website domain you register with them, and calls
 it a "domain script" — that is the UUID you copy out of their admin, and it
@@ -61,41 +61,76 @@ markets, or raise it if you hit the case.
 
 ### Group mapping
 
-| OneTrust group | Canonical category |
+| OneTrust group | Consent purpose |
 | --- | --- |
 | `C0001` Strictly Necessary | `necessary` |
-| `C0002` Performance | `statistics` |
+| `C0002` Performance | `analytics` |
 | `C0003` Functional | `functional` |
-| `C0004` Targeting | `marketing` |
-| `C0005` Social Media | `unclassified` |
-| anything else | `unclassified` |
+| `C0004` Targeting | `advertising`, `personalization` |
+| `C0005` Social Media | — |
+| anything else | — |
 
-`C0005` maps to `unclassified` rather than `marketing` on purpose: `unclassified`
-gates nothing, so accepting social-media cookies alone cannot grant advertising
-storage.
+The defaults reproduce what OneTrust's own Google Consent Mode integration
+signals. Read your domain JSON to confirm: `GCAnalyticsStorage` is `C0002`, and
+`GCAdStorage`, `GCAdUserData` and `GCAdPersonalization` are all `C0004`. That is
+why `C0004` grants two purposes — `@laioutr-app/gtm` derives `ad_personalization`
+from `personalization`, so granting only `advertising` would deny ad
+personalization to a visitor OneTrust considers to have allowed it.
 
-Tenants that rename or add categories override by ID. An array value grants
-several categories from one group:
+**The two ad purposes cannot diverge under the stock groups.** OneTrust models a
+single Targeting group, so no visitor state grants `advertising` while denying
+`personalization`. Separating them takes a tenant-side group mapped explicitly:
+
+```ts
+groupMapping: {
+  C0004: 'advertising',
+  C0007: 'personalization', // a custom group your OneTrust tenant defines
+},
+```
+
+`C0005` grants nothing, which is also what OneTrust does — it maps Social Media
+to no Google signal. Accepting social-media cookies alone therefore reports
+exactly as accepting nothing, on both paths.
+
+A group absent from the mapping grants nothing and warns in dev. Map it to an
+empty array to say that is deliberate and silence the warning.
+
+Tenants that rename or add groups override by ID. An array value grants several
+purposes from one group:
 
 ```ts
 '@laioutr/app-onetrust': {
   scriptId: '…',
   groupMapping: {
-    C0002: ['statistics', 'functional'], // a category that straddles both
-    C0007: 'marketing',                  // a custom group
+    C0002: ['analytics', 'functional'], // a group that straddles both
+    C0006: [],                          // known, and deliberately gates nothing
+    C0007: 'advertising',               // a custom group
   },
 },
 ```
 
+Check the group *names* in your tenant before trusting the defaults: a group
+called "Analytics & Functional" needs the array form, because the default maps
+`C0002` to `analytics` alone.
+
 ## Google Consent Mode
 
-This app never signals Google. If OneTrust's own Consent Mode integration is
-enabled for your domain script (`GCEnable` in the domain JSON), set
-`consentUpdates: 'external'` on `@laioutr-app/gtm` so the two do not both push
-`gtag('consent','update')`. The inline Consent Mode _default_ stays with the GTM
-app either way.
+This app never signals Google. It reports purposes to the consent store, and
+`@laioutr-app/gtm` turns those into `gtag('consent','update')` — `advertising`
+drives `ad_storage` and `ad_user_data`, `personalization` drives
+`ad_personalization` and `personalization_storage`, `analytics` drives
+`analytics_storage`, and `functional` drives `functionality_storage`.
+
+If OneTrust's own Consent Mode integration is enabled for your domain script
+(`GCEnable` in the domain JSON), set `consentUpdates: 'external'` on
+`@laioutr-app/gtm` so the two do not both push `gtag('consent','update')`. The
+inline Consent Mode _default_ stays with the GTM app either way.
 
 If OneTrust's Consent Mode is off, leave the GTM app on its `'store'` default.
+Note that the two paths are not identical even with matching group mappings:
+OneTrust leaves any signal mapped to `DNAC` unsent, where the GTM app always
+emits a complete update. `personalization_storage` is the usual case — `DNAC` in
+most tenants, and granted by `C0004` here.
 
 ## Auto-blocking
 

@@ -1,3 +1,4 @@
 <template>
   <LfcApp />
+  <ConsentPanel />
 </template>

@@ -5,24 +5,36 @@ import { type KnownMarket, validateScriptIdConfig } from './validateScriptIdConf
 import type { NuxtModule } from '@nuxt/schema';
 import { name, version } from '../package.json';
 
-export type ConsentCategory = 'necessary' | 'functional' | 'statistics' | 'marketing' | 'unclassified';
+export type ConsentPurpose = 'necessary' | 'functional' | 'analytics' | 'advertising' | 'personalization';
 
 /**
- * OneTrust's stock category IDs. Tenants can rename the categories freely — sportspar calls
- * C0002 "Analytical & Functional" — but the IDs themselves are stable, which is why the mapping
- * is keyed by ID and not by name.
+ * OneTrust's stock group IDs. Tenants can rename the groups freely — sportspar calls C0002
+ * "Analyse & Funktional" — but the IDs themselves are stable, which is why the mapping is keyed
+ * by ID and not by name.
  *
- * C0005 maps to `unclassified` rather than `marketing` on purpose: `unclassified` is referenced
- * by no EventPurpose in frontend-core, so it gates nothing. Mapping Social Media to `marketing`
- * would let a visitor who accepts social media while rejecting targeting flip `marketing` to
- * true, and consumers would grant advertising storage without targeting consent.
+ * The defaults reproduce what OneTrust's own Google Consent Mode integration signals: it drives
+ * `analytics_storage` off C0002, and all three ad signals — `ad_storage`, `ad_user_data` and
+ * `ad_personalization` — off C0004 alone. C0004 therefore grants both `advertising` and
+ * `personalization`, because `@laioutr-app/gtm` reads `ad_personalization` from the latter.
+ * Granting only `advertising` would deny ad personalization to a visitor OneTrust considers to
+ * have allowed it.
+ *
+ * The two ad purposes consequently cannot diverge: OneTrust's stock taxonomy has one Targeting
+ * group, so no visitor state grants one and denies the other. Splitting them takes a tenant-side
+ * group mapped explicitly — see the README.
+ *
+ * C0005 Social Media is present but grants nothing. It granted `unclassified` before, a purpose
+ * that gated nothing, and OneTrust maps it to no Google signal either, so accepting social media
+ * alone reports exactly as accepting nothing on both paths. It is listed rather than omitted
+ * because the adapter warns in dev about a granted group it has never heard of, and this one
+ * gating nothing is a decision.
  */
-export const DEFAULT_GROUP_MAPPING: Record<string, ConsentCategory> = {
+export const DEFAULT_GROUP_MAPPING: Record<string, ConsentPurpose | ConsentPurpose[]> = {
   C0001: 'necessary',
-  C0002: 'statistics',
+  C0002: 'analytics',
   C0003: 'functional',
-  C0004: 'marketing',
-  C0005: 'unclassified',
+  C0004: ['advertising', 'personalization'],
+  C0005: [],
 };
 
 const DEFAULT_CDN_HOST = 'cdn.cookielaw.org';
@@ -46,10 +58,11 @@ export interface ModuleOptions {
   /** Emit `data-document-language="true"` so the banner follows `<html lang>`. Defaults to true. */
   documentLanguage?: boolean;
   /**
-   * OneTrust group ID to canonical category, merged over {@link DEFAULT_GROUP_MAPPING}. An array
-   * value grants several categories from one group, for tenants whose category straddles two.
+   * OneTrust group ID to processing purpose, merged over {@link DEFAULT_GROUP_MAPPING}. An array
+   * value grants several purposes from one group, for a tenant whose group straddles two. A group
+   * absent from the mapping grants nothing.
    */
-  groupMapping?: Record<string, ConsentCategory | ConsentCategory[]>;
+  groupMapping?: Record<string, ConsentPurpose | ConsentPurpose[]>;
 }
 
 /**
@@ -59,7 +72,7 @@ export interface RuntimeConfigModulePublic {
   scriptId: string | Record<string, string>;
   cdnHost: string;
   documentLanguage: boolean;
-  groupMapping: Record<string, ConsentCategory | ConsentCategory[]>;
+  groupMapping: Record<string, ConsentPurpose | ConsentPurpose[]>;
 }
 
 /**

@@ -1,5 +1,5 @@
 import { defineNuxtPlugin, useRuntimeConfig } from 'nuxt/app';
-import OneTrustAdapter from './adapter';
+import { createOneTrustAdapter } from './adapter';
 import { useConsentStore, useMarket } from '#imports';
 import type { RuntimeConfigModulePublic } from '../../../module';
 import { resolveScriptId } from '../resolveScriptId';
@@ -9,7 +9,7 @@ export default defineNuxtPlugin({
   dependsOn: ['frontend-core:market'],
   setup() {
     // Nuxt infers this key's type from the values the module resolved, so `groupMapping` arrives as
-    // `{ C0001: string, … }` rather than the category union. `RuntimeConfigModulePublic` is the
+    // `{ C0001: string, … }` rather than the purpose union. `RuntimeConfigModulePublic` is the
     // contract the module actually writes — see the note in globalExtensions.ts.
     const config = useRuntimeConfig().public['@laioutr/app-onetrust'] as unknown as RuntimeConfigModulePublic;
 
@@ -20,10 +20,9 @@ export default defineNuxtPlugin({
       return;
     }
 
-    const store = useConsentStore();
-    const adapter = new OneTrustAdapter(config);
-
-    store.registerAdapter(adapter);
-    store.activateAdapter(adapter.name);
+    // `setAdapter` runs the adapter's setup synchronously — which is what lets it read cookies —
+    // and returns the handle that drops it again. Nothing drops it here: the adapter lives as long
+    // as the Nuxt app it was installed into.
+    useConsentStore().setAdapter(createOneTrustAdapter(config));
   },
 });
