@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v1.3.0
+
+[compare changes](https://github.com/laioutr/app-onetrust/compare/v1.2.0...v1.3.0)
+
+### 🚀 Enhancements
+
+- Update to new consent-adapter model ([61b5f3f](https://github.com/laioutr/app-onetrust/commit/61b5f3f))
+
+### ❤️ Contributors
+
+- Sebastian Langer <sebastian.langer@laioutr.com>
+
 ## v1.2.0
 
 [compare changes](https://github.com/laioutr/app-onetrust/compare/v1.1.0...v1.2.0)
