@@ -1,6 +1,6 @@
 {
   "name": "@laioutr/app-onetrust",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Laioutr integration with OneTrust consent management",
   "repository": "laioutr/app-onetrust",
   "license": "MIT",

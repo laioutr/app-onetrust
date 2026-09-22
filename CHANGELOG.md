@@ -1,6 +1,22 @@
 # Changelog
 
 
+## v1.4.0
+
+[compare changes](https://github.com/laioutr/app-onetrust/compare/v1.3.0...v1.4.0)
+
+### 🚀 Enhancements
+
+- Grant every consent purpose in the Studio editor instead of loading OneTrust ([acf65d3](https://github.com/laioutr/app-onetrust/commit/acf65d3))
+
+### 🩹 Fixes
+
+- **playground:** Load the OneTrust TEST script so decisions persist locally ([bc039e1](https://github.com/laioutr/app-onetrust/commit/bc039e1))
+
+### ❤️ Contributors
+
+- Sebastian Langer <sebastian.langer@laioutr.com>
+
 ## v1.3.0
 
 [compare changes](https://github.com/laioutr/app-onetrust/compare/v1.2.0...v1.3.0)
