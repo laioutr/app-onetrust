@@ -1,5 +1,5 @@
 import { defineNuxtPlugin, useHead, useRuntimeConfig } from 'nuxt/app';
-import { useMarket } from '#imports';
+import { useIsStudioEmbed, useMarket } from '#imports';
 import type { RuntimeConfigModulePublic } from '../../../module';
 import { buildOneTrustHead } from '../buildOneTrustHead';
 import { resolveScriptId } from '../resolveScriptId';
@@ -8,6 +8,11 @@ export default defineNuxtPlugin({
   name: 'onetrust:head',
   dependsOn: ['frontend-core:market'],
   setup() {
+    // No banner over the editor canvas. The adapter plugin grants every purpose there instead.
+    if (useIsStudioEmbed().value) {
+      return;
+    }
+
     // Asserted rather than augmented — see the note in globalExtensions.ts.
     const { scriptId, cdnHost, documentLanguage } = useRuntimeConfig().public[
       '@laioutr/app-onetrust'

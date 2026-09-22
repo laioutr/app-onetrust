@@ -41,7 +41,7 @@
     "defu": "6.1.4"
   },
   "devDependencies": {
-    "@laioutr-core/devtools": "^0.42.0",
+    "@laioutr-core/devtools": "^0.59.0",
     "@laioutr/eslint-config": "^1.8.8",
     "@laioutr/prettier-config": "^1.1.0",
     "@nuxt/devtools": "^2.6.3",
@@ -64,7 +64,7 @@
   "peerDependencies": {
     "@laioutr-core/canonical-types": ">=0.29.0",
     "@laioutr-core/core-types": ">=0.42.0",
-    "@laioutr-core/frontend-core": ">=0.42.0"
+    "@laioutr-core/frontend-core": ">=0.59.0"
   },
   "engines": {
     "node": ">=22.12.0",

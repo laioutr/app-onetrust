@@ -21,6 +21,7 @@ See [laioutr.com](https://laioutr.com) for more information about Laioutr.
 - Reads the `OptanonConsent` cookie during SSR, so returning visitors get a correct first paint
 - Catches consent changes that fire before hydration via an inline `<head>` bootstrap
 - Build-time validation of the per-market configuration
+- Stays out of the Studio editor: no SDK or banner loads there, and every purpose reads as granted
 
 ## Configuration
 

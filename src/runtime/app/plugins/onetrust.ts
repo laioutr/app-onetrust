@@ -1,6 +1,7 @@
 import { defineNuxtPlugin, useRuntimeConfig } from 'nuxt/app';
 import { createOneTrustAdapter } from './adapter';
-import { useConsentStore, useMarket } from '#imports';
+import { createStudioAdapter } from './studioAdapter';
+import { useConsentStore, useIsStudioEmbed, useMarket } from '#imports';
 import type { RuntimeConfigModulePublic } from '../../../module';
 import { resolveScriptId } from '../resolveScriptId';
 
@@ -8,6 +9,14 @@ export default defineNuxtPlugin({
   name: 'onetrust:adapter',
   dependsOn: ['frontend-core:market'],
   setup() {
+    // The editor frame loads no SDK — the head plugin skips it — so every purpose is granted
+    // outright, whatever the market. Checked before the script ID because Studio swaps markets in
+    // place, and one without a script must not flip the canvas to a denied state.
+    if (useIsStudioEmbed().value) {
+      useConsentStore().setAdapter(createStudioAdapter());
+      return;
+    }
+
     // Nuxt infers this key's type from the values the module resolved, so `groupMapping` arrives as
     // `{ C0001: string, … }` rather than the purpose union. `RuntimeConfigModulePublic` is the
     // contract the module actually writes — see the note in globalExtensions.ts.
