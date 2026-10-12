@@ -13,6 +13,16 @@ const stub = (...args: Parameters<typeof buildOneTrustHead>) =>
   tags(...args).find((tag) => tag.key === 'onetrust-sdk')!;
 
 describe('buildOneTrustHead', () => {
+  it('emits no preload without a banner SDK URL', () => {
+    expect(buildOneTrustHead(SCRIPT).link).toEqual([]);
+  });
+
+  it('preloads the banner SDK at low priority, without crossorigin', () => {
+    const href = 'https://cdn.cookielaw.org/scripttemplates/202608.1.0/otBannerSdk.js';
+    const [link] = buildOneTrustHead(SCRIPT, { bannerSdkUrl: href }).link;
+    expect(link).toEqual({ key: 'onetrust-banner-sdk', rel: 'preload', as: 'script', fetchpriority: 'low', href });
+  });
+
   it('puts the domain script on the stub tag', () => {
     expect(stub(SCRIPT)['data-domain-script']).toBe(SCRIPT);
   });
