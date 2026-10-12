@@ -1,8 +1,12 @@
-import { defineNuxtPlugin, useHead, useRuntimeConfig } from 'nuxt/app';
+import { defineNuxtPlugin, useHead, useRuntimeConfig, useState } from 'nuxt/app';
 import { useIsStudioEmbed, useMarket } from '#imports';
 import type { RuntimeConfigModulePublic } from '../../../module';
+import { createBannerSdkUrlCache } from '../bannerSdkUrl';
 import { buildOneTrustHead } from '../buildOneTrustHead';
 import { resolveScriptId } from '../resolveScriptId';
+
+// One cache per server process, shared by every request it renders.
+const bannerSdkUrls = import.meta.server ? createBannerSdkUrlCache() : undefined;
 
 export default defineNuxtPlugin({
   name: 'onetrust:head',
@@ -32,6 +36,12 @@ export default defineNuxtPlugin({
       return;
     }
 
-    useHead(buildOneTrustHead(resolved, { cdnHost, documentLanguage }));
+    // Resolved on the server and handed to the client through the payload, so hydration renders the
+    // same head instead of dropping the preload the server emitted.
+    const bannerSdkUrl = useState<string | undefined>('onetrust:banner-sdk-url', () =>
+      bannerSdkUrls?.peek(cdnHost, resolved)
+    );
+
+    useHead(buildOneTrustHead(resolved, { cdnHost, documentLanguage, bannerSdkUrl: bannerSdkUrl.value }));
   },
 });
