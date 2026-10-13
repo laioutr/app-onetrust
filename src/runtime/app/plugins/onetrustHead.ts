@@ -1,12 +1,12 @@
 import { defineNuxtPlugin, useHead, useRuntimeConfig, useState } from 'nuxt/app';
-import { useIsStudioEmbed, useMarket } from '#imports';
+import { useIsStudioEmbed, useMarket, useMarketDomain } from '#imports';
 import type { RuntimeConfigModulePublic } from '../../../module';
-import { createBannerSdkUrlCache } from '../bannerSdkUrl';
 import { buildOneTrustHead } from '../buildOneTrustHead';
+import { createPreloadCache, type OneTrustPreloads } from '../preloads';
 import { resolveScriptId } from '../resolveScriptId';
 
 // One cache per server process, shared by every request it renders.
-const bannerSdkUrls = import.meta.server ? createBannerSdkUrlCache() : undefined;
+const preloadCache = import.meta.server ? createPreloadCache() : undefined;
 
 export default defineNuxtPlugin({
   name: 'onetrust:head',
@@ -37,11 +37,13 @@ export default defineNuxtPlugin({
     }
 
     // Resolved on the server and handed to the client through the payload, so hydration renders the
-    // same head instead of dropping the preload the server emitted.
-    const bannerSdkUrl = useState<string | undefined>('onetrust:banner-sdk-url', () =>
-      bannerSdkUrls?.peek(cdnHost, resolved)
+    // same head instead of dropping the preloads the server emitted. The language is the one
+    // frontend-core writes into `<html lang>`, which is what `data-document-language` makes OneTrust
+    // read; without that attribute OneTrust follows the browser's language, which the server cannot know.
+    const preloads = useState<OneTrustPreloads | undefined>('onetrust:preloads', () =>
+      preloadCache?.peek(cdnHost, resolved, documentLanguage ? useMarketDomain().value?.language.code : undefined)
     );
 
-    useHead(buildOneTrustHead(resolved, { cdnHost, documentLanguage, bannerSdkUrl: bannerSdkUrl.value }));
+    useHead(buildOneTrustHead(resolved, { cdnHost, documentLanguage, preloads: preloads.value }));
   },
 });

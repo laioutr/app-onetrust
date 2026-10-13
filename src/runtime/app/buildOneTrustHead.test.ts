@@ -13,14 +13,30 @@ const stub = (...args: Parameters<typeof buildOneTrustHead>) =>
   tags(...args).find((tag) => tag.key === 'onetrust-sdk')!;
 
 describe('buildOneTrustHead', () => {
-  it('emits no preload without a banner SDK URL', () => {
+  it('emits no preload without preloads', () => {
     expect(buildOneTrustHead(SCRIPT).link).toEqual([]);
   });
 
   it('preloads the banner SDK at low priority, without crossorigin', () => {
     const href = 'https://cdn.cookielaw.org/scripttemplates/202608.1.0/otBannerSdk.js';
-    const [link] = buildOneTrustHead(SCRIPT, { bannerSdkUrl: href }).link;
+    const [link] = buildOneTrustHead(SCRIPT, { preloads: { bannerSdk: href, fetches: [] } }).link;
     expect(link).toEqual({ key: 'onetrust-banner-sdk', rel: 'preload', as: 'script', fetchpriority: 'low', href });
+  });
+
+  it('preloads the rest of the chain as anonymous low-priority fetches, after the SDK', () => {
+    const sdk = 'https://cdn.cookielaw.org/scripttemplates/202608.1.0/otBannerSdk.js';
+    const config = `https://cdn.cookielaw.org/consent/${SCRIPT}/${SCRIPT}.json`;
+    const styles = 'https://cdn.cookielaw.org/scripttemplates/202608.1.0/assets/otCommonStyles.css';
+    const links = buildOneTrustHead(SCRIPT, { preloads: { bannerSdk: sdk, fetches: [config, styles] } }).link;
+    expect(links.map((link) => link.href)).toEqual([sdk, config, styles]);
+    expect(links[1]).toEqual({
+      key: 'onetrust-preload-0',
+      rel: 'preload',
+      as: 'fetch',
+      crossorigin: 'anonymous',
+      fetchpriority: 'low',
+      href: config,
+    });
   });
 
   it('puts the domain script on the stub tag', () => {
