@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v1.4.2
+
+[compare changes](https://github.com/laioutr/app-onetrust/compare/v1.4.1...v1.4.2)
+
+### 🔥 Performance
+
+- Preload the whole OneTrust banner chain, not just the SDK ([374b8c2](https://github.com/laioutr/app-onetrust/commit/374b8c2))
+
+### ❤️ Contributors
+
+- Sebastian Langer <sebastian.langer@laioutr.com>
+
 ## v1.4.1
 
 [compare changes](https://github.com/laioutr/app-onetrust/compare/v1.4.0...v1.4.1)
